@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<project ver="10" name="RunCat_with_aardio" libEmbed="true" icon="res\appIcon.ico" ui="win" output="RunCat_with_aardio.exe" CompanyName="单位名称" FileDescription="RunCat_with_aardio" LegalCopyright="Copyright (C) 作者 2022" ProductName="RunCat_with_aardio" InternalName="RunCat_with_aardio" FileVersion="0.0.0.03" ProductVersion="0.0.0.03" publishDir="/dist/" dstrip="false" local="false" ignored="false">
+	<file name="main.aardio" path="main.aardio" comment="main.aardio"/>
+	<folder name="资源文件" path="res" embed="true" local="false" ignored="false">
+		<file name="appIcon.ico" path="res\appIcon.ico" comment="res\appIcon.ico"/>
+		<folder name="cat" path="res\cat" comment="res\cat">
+			<file name="dark_cat_0.ico" path="res\cat\dark_cat_0.ico" comment="res\cat\dark_cat_0.ico"/>
+			<file name="dark_cat_1.ico" path="res\cat\dark_cat_1.ico" comment="res\cat\dark_cat_1.ico"/>
+			<file name="dark_cat_2.ico" path="res\cat\dark_cat_2.ico" comment="res\cat\dark_cat_2.ico"/>
+			<file name="dark_cat_3.ico" path="res\cat\dark_cat_3.ico" comment="res\cat\dark_cat_3.ico"/>
+			<file name="dark_cat_4.ico" path="res\cat\dark_cat_4.ico" comment="res\cat\dark_cat_4.ico"/>
+			<file name="light_cat_0.ico" path="res\cat\light_cat_0.ico" comment="res\cat\light_cat_0.ico"/>
+			<file name="light_cat_1.ico" path="res\cat\light_cat_1.ico" comment="res\cat\light_cat_1.ico"/>
+			<file name="light_cat_2.ico" path="res\cat\light_cat_2.ico" comment="res\cat\light_cat_2.ico"/>
+			<file name="light_cat_3.ico" path="res\cat\light_cat_3.ico" comment="res\cat\light_cat_3.ico"/>
+			<file name="light_cat_4.ico" path="res\cat\light_cat_4.ico" comment="res\cat\light_cat_4.ico"/>
+		</folder>
+	</folder>
+	<folder name="窗体文件" path="dlg" comment="目录" embed="true"/>
+</project>

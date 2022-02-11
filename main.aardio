@@ -1,0 +1,144 @@
+import win.ui;
+import win.ui.menu;
+import win.util.tray;
+import win.ui.atom;
+import sys.cpu;
+import win.timer;
+import config;
+/*DSG{{*/
+mainForm = win.form(text="RunCat_with_aardio";right=296;bottom=263)
+mainForm.add(
+blackcat={cls="radiobutton";text="黑猫";left=114;top=43;right=176;bottom=65;dl=1;dt=1;z=4};
+cpuCheckFrequency={cls="edit";left=97;top=188;right=179;bottom=211;dl=1;dt=1;edge=1;num=1;tabstop=1;z=1};
+static={cls="static";text="检测频率(秒)";left=17;top=191;right=91;bottom=214;dl=1;dt=1;transparent=1;z=2};
+whitecat={cls="radiobutton";text="白猫";left=24;top=43;right=86;bottom=65;checked=1;dl=1;dt=1;group=1;z=3}
+)
+/*}}*/
+
+/*只运行一个实例{{*/
+var atom,hwnd = mainForm.atom("domisoft.aardio.runcat");
+if(!atom){ 
+	win.showForeground(hwnd);
+	win.setActive(hwnd);
+	win.quitMessage();	
+	return;
+}
+/*}}*/
+
+/*配置{{*/
+mainForm.bindConfig( config.system,{
+	edit = "text";
+	radiobutton = "checked";
+} );
+/*}}*/
+
+_iconLib = {
+		[1]= {
+			[1] = "\res\cat\dark_cat_0.ico";
+			[2] = "\res\cat\dark_cat_1.ico";
+			[3] = "\res\cat\dark_cat_2.ico";
+			[4] = "\res\cat\dark_cat_3.ico";
+			[5] = "\res\cat\dark_cat_4.ico";
+		};
+		[2]= {
+			[1] = "\res\cat\light_cat_0.ico";
+			[2] = "\res\cat\light_cat_1.ico";
+			[3] = "\res\cat\light_cat_2.ico";
+			[4] = "\res\cat\light_cat_3.ico";
+			[5] = "\res\cat\light_cat_4.ico";
+		}
+}
+var iconTab = mainForm.whitecat.checked ? _iconLib[1] : _iconLib[2];
+
+var tray = win.util.tray(mainForm);
+tray.tip = "Run Cat" //设置鼠标提示 
+
+
+var cpu;
+var tid;
+
+
+_runInterval = {50;100;200;300;400;500;600;700;800;900};
+
+var refreshIcon = function(){
+	cpu = sys.cpu.getInfoByWmi();
+	if tid mainForm.clearInterval(tid);
+	//win.msgbox(math.round(cpu.CurrentClockSpeed * 10 /cpu.MaxClockSpeed));
+	tid = mainForm.reduce( iconTab,
+		function(value,index){
+			if !value return 1; 
+			tray.icon = value;
+			return _runInterval[math.round(cpu.CurrentClockSpeed/cpu.MaxClockSpeed)];
+		} 
+	)
+}
+
+
+var timer = win.timer( mainForm, config.system.cpuCheckFrequency * 1000 /* 检测频率秒 */);
+
+timer.onTimer = function(hwnd,msg,id,tick){
+	cpu = sys.cpu.getInfoByWmi();// 定时执行参数@2指定的回调函数,参数@1指定间隔毫秒数
+}
+
+mainForm.onMinimize = function(lParam){
+	mainForm.show(false); //隐藏窗口
+	return true;//阻击默认消息传递,取消最小化过程
+}
+mainForm.onClose = mainForm.onMinimize;
+
+mainForm.popmenu = win.ui.popmenu(mainForm);//创建弹出菜单
+mainForm.popmenu.add('&open',function(id){
+	win.setForeground(mainForm.hwnd);
+	mainForm.show();
+	
+});
+mainForm.popmenu.add();//分隔线
+mainForm.popmenu.add('&exit',function(id){
+	if mainForm.tray mainForm.tray.delete();
+	mainForm.clearInterval(tid);
+	timer.disable();
+	win.quitMessage();
+});
+
+mainForm.wndproc =  function(hwnd,message,wParam,lParam){
+ 		select(message) {
+ 			case 0xACCF/*_WM_TRAYMESSAGE*/ {
+				select(lParam) {
+					case 0x205/*_WM_RBUTTONUP*/ {
+						win.setForeground(mainForm.hwnd)	//弹出托盘菜单以前,一定要前置主窗口中,不然不点击菜单不会消失
+	    				var pt = ::POINT();
+						::User32.GetCursorPos(pt);   		
+	    				mainForm.popmenu.popup(pt.x,pt.y, true);
+					}
+					case 0x202/*_WM_LBUTTONUP*/ {
+						win.setForeground(mainForm.hwnd); //弹出托盘菜单以前,一定要前置主窗口中,不然不点击菜单不会消失							
+						mainForm.show(!win.isVisible(mainForm.hwnd));					
+					}
+				}
+			}
+/*
+			case _WM_TASKBARBUTTONCREATED { 
+            	mainForm.taskbar = com.interface.ITaskbarList3.Create() ;
+            } 
+*/
+	}
+}
+
+mainForm.whitecat.oncommand = function(id,event){
+	if event !== 0/*_BN_CLICKED*/ return ; 
+	config.system.save();
+	iconTab = _iconLib[1];
+	refreshIcon();
+	
+}
+
+mainForm.blackcat.oncommand = function(id,event){
+	if event !== 0/*_BN_CLICKED*/ return ; 
+	config.system.save();
+	iconTab = _iconLib[2];	
+	refreshIcon();
+}
+
+mainForm.show();
+refreshIcon();
+return win.loopMessage();
