@@ -1,14 +1,21 @@
 
-import process;
+//import process;
 import sys;
+import sys.cpu;
+
 namespace CPU;
 
+/* https://bbs.aardio.com/forum.php?mod=viewthread&tid=12961 */
+
+/*
 GetProcessTimes = ::Kernel32.api("GetProcessTimes"
     ,"bool(pointer hProcess, LONG& lpCreationTime, LONG& lpExitTime, LONG& lpKernelTime, LONG& lpUserTime)" )
+*/
    
 GetSystemTimes = ::Kernel32.api("GetSystemTimes"
     ,"bool(LONG& lpIdleTime, LONG& lpKernelTime, LONG& lpUserTime)" )
 
+/*
 getPrcsCpuLoading = function(hPrcs, delay=1000) begin
     var cpuTms = {}
     var coreNum = sys.info().dwNumberOfProcessors
@@ -21,10 +28,11 @@ getPrcsCpuLoading = function(hPrcs, delay=1000) begin
    
     return (cpuTms[2] - cpuTms[1]) / delay * 100;   
 end;
+*/
 
 getCpuLoading = function(delay=1000) begin
     var cpuTms = {}
-    var coreNum = sys.info().dwNumberOfProcessors
+    var coreNum = ..sys.info().dwNumberOfProcessors
     for(i=1;2;1){
         var ret,idleTime, kernelTime, userTime = GetSystemTimes(0, 0, 0)
         if(!ret) return false;
@@ -35,6 +43,13 @@ getCpuLoading = function(delay=1000) begin
    
     return (cpuTms[2] - cpuTms[1]) / delay * 100;   
 end;
+
+getCpuUsage = function(){
+	var per = getCpuLoading();
+	sleep(1000);
+	per = getCpuLoading();
+    return per*1000/..sys.cpu.getFrequence();
+}
 
 
 
