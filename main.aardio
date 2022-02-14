@@ -64,14 +64,16 @@ mainForm.onMinimize = function(lParam){
 mainForm.onClose = mainForm.onMinimize;
 /*}}*/
 
-//import console
-//console.open();
+/*
+import console
+console.open();
+*/
 
-//_runInterval = {100;150;200;250;300;350;400;450;500;550};
-_runInterval = {200;190;180;170;160;150;140;130;120;100};
-//ANIMATE_TIMER_DEFAULT_INTERVAL / (float)Math.Max(1.0f, Math.Min(20.0f, s / 5.0f));
 
-var iconBlink_timer = win.timer( mainForm, _runInterval[1]);
+_ANIMATE_DEFAULT_INTERVAL = 200;
+
+
+var iconBlink_timer = win.timer( mainForm, _ANIMATE_DEFAULT_INTERVAL);
 var icon_index = 1;
 iconBlink_timer.onTimer = function(hwnd,msg,id,tick){
 	if icon_index > #iconTab icon_index = 1;
@@ -82,32 +84,28 @@ iconBlink_timer.onTimer = function(hwnd,msg,id,tick){
 var cpuCheck_timer = win.timer( mainForm, config.system.cpuCheckFrequency * 1000 /* 检测频率秒 */);
 
 _coreNum := sys.info().dwNumberOfProcessors; //CPU 核心数
-_Frequency := sys.cpu.getFrequence(); //CPU 最大频率
+_Frequency := math.round(sys.cpu.getFrequence()); //CPU 最大频率
 
 var GetSystemTimes = ::Kernel32.api("GetSystemTimes","bool(LONG& lpIdleTime, LONG& lpKernelTime, LONG& lpUserTime)" );
-var cpuTms = {0};
+var cpuTms = {};
 cpuCheck_timer.onTimer = function(hwnd,msg,id,tick){
 	var ret, idleTime, kernelTime, userTime = GetSystemTimes(0, 0, 0);
-	var interval_index = 1;
 	var usage = 0;
 	if ret {
-		var t =  (idleTime + userTime - idleTime)/10000/_coreNum;
+		var t =  (idleTime + userTime - idleTime)/1000/_coreNum;
 		table.push(cpuTms, t);
-		if #cpuTms > 2 table.shift(cpuTms);
-		var per = math.abs(cpuTms[2] - cpuTms[1]) /owner.getInterval() * 100;
-		usage = per*1000/_Frequency /* cpu 使用率 是这么计算的吗? */;
-		interval_index = math.round( usage * 10); 
-		
-		if !interval_index interval_index = 1;
-		if interval_index < 1 interval_index = 1;
-		if interval_index >10 interval_index = 10;
+		if #cpuTms > 2 table.shift(cpuTms);	
+		if #cpuTms == 2 {
+			var per = math.abs(cpuTms[2] - cpuTms[1]) / owner.getInterval() * 1000;
+			usage = per * 100 /* _% */ / _Frequency /* cpu 使用率 是这么计算的吗? */;
+		}
 	}
-	
-	iconBlink_timer.setInterval(_runInterval[interval_index]);
-	tray.tip = math.round(usage * 10, 1) ++ "%";
+	if usage > 0 {
+		tray.tip = "CPU: " ++ math.round(usage, 1) ++ "%";
+		var ANIMATE_INTERVAL = math.round(_ANIMATE_DEFAULT_INTERVAL / math.max(1, math.min(20, usage / 5)));
+		iconBlink_timer.setInterval(ANIMATE_INTERVAL);
+	}
 }
-
-
 
 
 /*托盘菜单{{*/
@@ -152,19 +150,19 @@ mainForm.wndproc =  function(hwnd,message,wParam,lParam){
 /*}}*/
 mainForm.whitecat.oncommand = function(id,event){
 	if event !== 0/*_BN_CLICKED*/ return ; 
-//	config.system.save();
+	config.system.save();
 	iconTab = _iconLib[1];
 }
 
 mainForm.blackcat.oncommand = function(id,event){
 	if event !== 0/*_BN_CLICKED*/ return ; 
-//	config.system.save();
+	config.system.save();
 	iconTab = _iconLib[2];	
 }
 
 mainForm.cpuCheckFrequency.onModified = function(modified){ 
-//	config.system.save();
-	cpuCheck_timer.setInterval(owner.text*1000);
+	config.system.save();
+	cpuCheck_timer.setInterval(owner.text * 1000);
 }
 
 mainForm.show();
