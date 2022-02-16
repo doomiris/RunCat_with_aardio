@@ -10,7 +10,9 @@ import process;
 /*DSG{{*/
 mainForm = win.form(text="RunCat_with_aardio";right=296;bottom=263)
 mainForm.add(
+autoCat={cls="radiobutton";text="自动";left=200;top=43;right=262;bottom=65;dl=1;dt=1;z=5};
 blackcat={cls="radiobutton";text="黑猫";left=114;top=43;right=176;bottom=65;dl=1;dt=1;z=4};
+checkbox={cls="checkbox";text="加入windows启动项";left=9;top=226;right=158;bottom=252;db=1;dl=1;z=6};
 cpuCheckFrequency={cls="edit";left=112;top=188;right=194;bottom=211;dl=1;dt=1;edge=1;num=1;tabstop=1;z=1};
 static={cls="static";text="CPU检测频率(秒)";left=9;top=191;right=106;bottom=214;dl=1;dt=1;transparent=1;z=2};
 whitecat={cls="radiobutton";text="白猫";left=24;top=43;right=86;bottom=65;checked=1;dl=1;dt=1;group=1;z=3}
@@ -52,7 +54,20 @@ _iconLib = {
 		}
 }
 /*}}*/
-var iconTab = config.system.whitecat ? _iconLib[1] : _iconLib[2];
+var isLightTheme = function(){
+    import win.reg;
+    var v = win.reg.query("HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize", "SystemUsesLightTheme");
+    if v===null return true; 
+    else return v==0 ? false : true;
+}
+
+var getIconIndex = function(){
+	if config.system.autoCat return isLightTheme() ? 2:1 ;
+	else return config.system.blackcat ? 2:1 ;	
+}
+
+var iconTab = _iconLib[getIconIndex()];
+
 
 /*创建托盘图标{{*/
 var tray = win.util.tray(mainForm);
@@ -68,7 +83,6 @@ mainForm.onClose = mainForm.onMinimize;
 import console
 console.open();
 */
-
 
 _ANIMATE_DEFAULT_INTERVAL = 200;
 
@@ -92,13 +106,14 @@ cpuCheck_timer.onTimer = function(hwnd,msg,id,tick){
 	var ret, idleTime, kernelTime, userTime = GetSystemTimes(0, 0, 0);
 	var usage = 0;
 	if ret {
-		var t =  (idleTime + userTime - idleTime)/1000/_coreNum;
+		var t =  (idleTime + userTime - idleTime)/10000/_coreNum;
 		table.push(cpuTms, t);
 		if #cpuTms > 2 table.shift(cpuTms);	
 		if #cpuTms == 2 {
-			var per = math.abs(cpuTms[2] - cpuTms[1]) / owner.getInterval() * 1000;
-			usage = per * 100 /* _% */ / _Frequency /* cpu 使用率 是这么计算的吗? */;
+			var per = math.abs(cpuTms[2] - cpuTms[1]) / owner.getInterval() * 100;
+			usage = per * 100 * 100 /* _% */ / _Frequency /* cpu 使用率 是这么计算的吗? */;
 		}
+		
 	}
 	if usage > 0 {
 		tray.tip = "CPU: " ++ math.round(usage, 1) ++ "%";
@@ -159,13 +174,29 @@ mainForm.blackcat.oncommand = function(id,event){
 	config.system.save();
 	iconTab = _iconLib[2];	
 }
-
+mainForm.autoCat.oncommand = function(id,event){
+	if event !== 0/*_BN_CLICKED*/ return ; 
+	config.system.save();
+	iconTab = _iconLib[(isLightTheme() ? 2:1)];	
+}
 mainForm.cpuCheckFrequency.onModified = function(modified){ 
 	config.system.save();
 	cpuCheck_timer.setInterval(owner.text * 1000);
 }
+var setStartup = function(add = true){
+	if _STUDIO_INVOKED return ; 
+    import win.reg;
+	var reg = win.reg("HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run");
+    if add reg.setSzValue(config.__appName, '"' + io._exepath + '"' );
+    else reg.delKey(config.__appName);
+    reg.close();
+}
+mainForm.checkbox.oncommand = function(id,event){
+	if event !== 0/*_BN_CLICKED*/ return ;
+	setStartup(owner.checked);
+}
 
-mainForm.show();
+//mainForm.show();
 
 iconBlink_timer.enable();
 cpuCheck_timer.enable();

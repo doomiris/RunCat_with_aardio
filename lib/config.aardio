@@ -10,7 +10,9 @@ namespace config {
 	__website = "https://github.com/doomiris/";
 }
 if !config.system.cpuCheckFrequency
-	config.system.cpuCheckFrequency = 60;
+	config.system.cpuCheckFrequency = 1;
+
+
 /**intellisense(config)
 __appName = 应用程序名
 __appVersion = 应用程序内部版本号
